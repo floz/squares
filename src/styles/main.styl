@@ -10,28 +10,50 @@ html, body
 
 size = 50px
 cols = 5
+lines = 6
 
 #game
   position absolute
-  background-color #00f
+  background-color rgba( 0, 0, 0, .5 )
   width size * cols
-  height size * cols
+  height size * lines
   left 50%
   bottom 50px
   transform translateX( -50% )
 
-.elt
+#screens
+  position absolute
+  width 100%
+  height 100%
+  text-align center
+  display table
+
+.screen
+  display table-cell
+  vertical-align middle
+  background-color rgba( 0, 0, 0, .5 )
+  color #fff
+  font-size 36px
+
+.level
   position relative
+  width 100%
+  height 100%
+
+.elt
+  position absolute
   width size
   height size
   transform-origin 50% 50%
+  opacity 0
+  backface-visibility hidden
 
 .elt-desc
   position absolute
   left 50%
   top 50%
   transform-origin 50% 50%
-  transform translateX( -50% ) translateY( -50% )
+  backface-visibility hidden
 
 .elt-desc--arrow
   s = size / 8
@@ -40,17 +62,31 @@ cols = 5
   border-left s solid #000
   margin-left - (s / 2)
   margin-top - (s / 2) - 1px
+  // transform translateX( -40% ) translateY( -40% )
 
 .elt-desc--circle
   width (size / 2)
   height (size / 2)
   border-radius (size / 2)
+  transform translateX( -50% ) translateY( -50% )
 
 .square
-  z-index 1
+  z-index 1 !important
 
 .square--a
   background-color #f00  
 
 .goal--a .elt-desc
   background-color #f00  
+
+.square--b
+  background-color #0f0  
+
+.goal--b .elt-desc
+  background-color #0f0  
+
+.square--c
+  background-color #00f  
+
+.goal--c .elt-desc
+  background-color #00f  

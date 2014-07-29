@@ -4,45 +4,12 @@ Elt = require "Elt"
 
 class Square extends Elt
 
-	constructor: ( type, dir ) ->
-		super
+	constructor: ( @type, dir ) ->
 		tplCompiled = _.template tpl
 		@dom = domify tplCompiled { type: type }
-		@domDesc = @dom.querySelector ".elt-desc"
-
-		@mov = { x: 0, y: 0 }
+		super
 
 		@setDirection dir, false
-
-	setDirection: ( value, animate = true ) ->
-		r = 0
-		switch value
-			when "l"  
-				r = 180
-				@mov.x = -1
-				@mov.y = 0
-			when "r"  
-				r = 0
-				@mov.x = 1
-				@mov.y = 0
-			when "t"  
-				r = -90
-				@mov.x = 0
-				@mov.y = -1
-			when "b"  
-				r = 90
-				@mov.x = 0
-				@mov.y = 1
-
-		data =
-			css:
-				rotation: r
-			ease: Back.easeOut
-
-		if animate
-			TweenLite.to @domDesc, .4, data
-		else
-			TweenLite.set @domDesc, data
 
 	activate: ( cb ) ->
 		@dom.addEventListener "touchend", @_onTouch, false
@@ -50,10 +17,14 @@ class Square extends Elt
 	_onTouch: =>
 		@emitter.emit "touch", @
 
-	move: ->
-		console.log @x, @y
-		@x += @mov.x
-		@y += @mov.y
+	move: ( x = 0, y = 0 ) ->
+		if x != 0 || y !=0
+			console.log x, y
+			@x += x
+			@y += y
+		else
+			@x += @mov.x
+			@y += @mov.y
 
 		speed = .4
 		TweenLite.to @dom, speed,
@@ -61,6 +32,7 @@ class Square extends Elt
 				x: @x * consts.size
 				y: @y * consts.size
 			ease: Expo.easeOut
-		done .4 * 1000
+
+		done ( speed - .1 ) * 1000
 
 module.exports = Square

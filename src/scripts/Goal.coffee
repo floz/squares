@@ -3,7 +3,7 @@ Elt = require "Elt"
 
 class Goal extends Elt
 
-	constructor: ( type ) ->
+	constructor: ( @type ) ->
 		tplCompiled = _.template tpl
 		@dom = domify tplCompiled { type: type }
 
