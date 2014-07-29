@@ -1,5 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var Level, Screen, domGame, domScreens, idx, level, next, nextLevel, nextScreen, screen, start;
+var Level, Screen, domControls, domGame, domScreens, idx, level, next, nextLevel, nextScreen, screen, start;
 
 _.templateSettings = {
   interpolate: /\{\{(.+?)\}\}/g
@@ -16,6 +16,12 @@ domScreens = document.getElementById("screens");
 level = null;
 
 screen = null;
+
+domControls = document.getElementById("controls");
+
+domControls.addEventListener("touchend", function() {
+  return level.reset();
+}, false);
 
 idx = -1;
 
@@ -118,6 +124,8 @@ Elt = (function() {
   Elt.prototype.setPos = function(x, y) {
     this.x = x;
     this.y = y;
+    this.xOrigin = this.x;
+    this.yOrigin = this.y;
     return TweenLite.set(this.dom, {
       css: {
         x: this.x * consts.size,
@@ -386,6 +394,17 @@ Level = (function(_super) {
     return countValid === this._squares.length;
   };
 
+  Level.prototype.reset = function() {
+    var square, _i, _len, _ref, _results;
+    _ref = this._squares;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      square = _ref[_i];
+      _results.push(square.setPos(square.xOrigin, square.yOrigin));
+    }
+    return _results;
+  };
+
   Level.prototype._end = function() {
     return this.emit("complete");
   };
@@ -614,7 +633,9 @@ module.exports={
 		"This is a game about Squares.",
 		"Nothing less, nothing more.",
 		"Have fun.",
-		"Phrase de merde"
+		"Phrase de merde",
+		"Phrase de merde2",
+		"Phrase de merde3"
 	]
 }
 },{}],11:[function(require,module,exports){

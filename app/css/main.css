@@ -20,12 +20,20 @@ body {
   -ms-transform: translateX(-50%);
   transform: translateX(-50%);
 }
+#controls {
+  width: 100%;
+  position: absolute;
+  height: 100px;
+  top: 40px;
+  text-align: center;
+}
 #screens {
   position: absolute;
   width: 100%;
   height: 100%;
   text-align: center;
   display: table;
+  pointer-events: none;
 }
 .screen {
   display: table-cell;

@@ -11,8 +11,15 @@ Screen = require "Screen"
 domGame = document.getElementById "game"
 domScreens = document.getElementById "screens"
 
+##
+
 level = null
 screen = null
+
+domControls = document.getElementById "controls"
+domControls.addEventListener "touchend", ->
+	level.reset()
+, false
 
 idx = -1
 
@@ -41,6 +48,5 @@ next = ->
 	screen.hide().then ->
 		domScreens.removeChild screen.dom
 		nextLevel()
-
 
 start()

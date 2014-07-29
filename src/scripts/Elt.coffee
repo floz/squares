@@ -38,6 +38,8 @@ class Elt
 			TweenLite.set @domDesc, data
 
 	setPos: ( @x, @y ) ->
+		@xOrigin = @x
+		@yOrigin = @y
 		TweenLite.set @dom,
 			css:
 				x: @x * consts.size

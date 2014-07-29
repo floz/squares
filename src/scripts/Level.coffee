@@ -94,6 +94,10 @@ class Level extends Emitter
 
 		countValid == @_squares.length
 
+	reset: ->
+		for square in @_squares
+			square.setPos square.xOrigin, square.yOrigin
+
 	_end: ->
 		@emit "complete"
 
