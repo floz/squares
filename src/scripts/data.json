@@ -43,10 +43,10 @@
 		  [ 0, 0, 0, 0, 0 ]
 		],
 		[ [ 0, 0, 0, 0, 0 ],
-		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, "sab", 0, "ga", 0 ],
 		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, "mr", 0, "mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, 0, 0, 0, 0 ]
 		]
 	],
@@ -57,7 +57,8 @@
 		"And if<br />you are stuck...<br />Just <strong>undo</strong> your<br />last action<br /> or <strong>reset</strong> the level.",
 		"You will discover new things the more you advance.",
 		"You will soon be on your own.",
-		"Wow. That's getting serious...",
+		"Wow...<br />That's getting<br /><strong>serious</strong><br />...",
 		"So... I guess it's time... Good luck!"
-	]
+	],
+	"end": "<strong>Congratz!</strong><br />I never thought you would made it...<br /><br />you can<br />start again some<br /><strong>levels</strong>,<br />or try some<br />new <strong>challenges!</strong>"
 }

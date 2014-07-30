@@ -8,7 +8,10 @@ class Screen
 		if idx < data.screens.length
 			text = data.screens[ idx ]
 		else
-			text = "Level #{idx}"
+			if idx == 9999
+				text = data.end
+			else
+				text = "Level #{idx}"
 		@dom = domify tplCompiled { text: text }
 
 	show: ->

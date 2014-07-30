@@ -172,7 +172,7 @@ module.exports = new EltFactory();
 
 
 },{"Goal":6,"Modifier":10,"Square":12}],5:[function(require,module,exports){
-var Game, Level, MenuLevels, Screen, save, tpl,
+var Game, Level, MenuLevels, Screen, data, save, tpl,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -187,14 +187,18 @@ MenuLevels = require("MenuLevels");
 
 save = require("save");
 
+data = require("data.json");
+
 Game = (function(_super) {
   __extends(Game, _super);
 
   function Game() {
     this._next = __bind(this._next, this);
     this._nextScreen = __bind(this._nextScreen, this);
+    this._nextEnd = __bind(this._nextEnd, this);
     this._onReset = __bind(this._onReset, this);
     this._onUndo = __bind(this._onUndo, this);
+    this._onSelectLevel = __bind(this._onSelectLevel, this);
     this._onMenuLevelsBack = __bind(this._onMenuLevelsBack, this);
     this._onMenuLevels = __bind(this._onMenuLevels, this);
     this._onMenuMenu = __bind(this._onMenuMenu, this);
@@ -212,8 +216,9 @@ Game = (function(_super) {
     this._domControlReset = domControls.querySelector(".game-control--reset");
     this._menuLevels = new MenuLevels();
     this._started = false;
-    this._idx = parseInt(save.getLevel());
-    if (!this._idx) {
+    this._ended = false;
+    this._idx = parseInt(save.getCurrentLevel());
+    if (!this._idx && this._idx !== 0) {
       this._idx = -1;
     }
   }
@@ -231,7 +236,9 @@ Game = (function(_super) {
     this._domMenuMenu.addEventListener("touchend", this._onMenuMenu, false);
     this._domMenuLevels.addEventListener("touchend", this._onMenuLevels, false);
     this._domControlUndo.addEventListener("touchend", this._onUndo, false);
-    return this._domControlReset.addEventListener("touchend", this._onReset, false);
+    this._domControlReset.addEventListener("touchend", this._onReset, false);
+    this._menuLevels.on("back", this._onMenuLevelsBack);
+    return this._menuLevels.on("new", this._onSelectLevel);
   };
 
   Game.prototype._onMenuMenu = function() {
@@ -240,16 +247,31 @@ Game = (function(_super) {
 
   Game.prototype._onMenuLevels = function() {
     this._domGame.appendChild(this._menuLevels.dom);
-    this._menuLevels.on("back", this._onMenuLevelsBack);
     this._menuLevels.activate();
     return this._menuLevels.show(this._idx);
   };
 
   Game.prototype._onMenuLevelsBack = function() {
+    if (this._ended) {
+      this._onMenuMenu();
+      return;
+    }
     this._menuLevels.deactivate();
     return this._menuLevels.hide().then((function(_this) {
       return function() {
         return _this._domGame.removeChild(_this._menuLevels.dom);
+      };
+    })(this));
+  };
+
+  Game.prototype._onSelectLevel = function(idx) {
+    this._menuLevels.deactivate();
+    return this._menuLevels.hide().then((function(_this) {
+      return function() {
+        _this._domGame.removeChild(_this._menuLevels.dom);
+        save.setCurrentLevel(idx);
+        _this._idx = idx;
+        return _this._nextScreen();
       };
     })(this));
   };
@@ -280,18 +302,41 @@ Game = (function(_super) {
     });
   };
 
+  Game.prototype._onEnd = function() {
+    this._ended = true;
+    this._screen = new Screen(9999);
+    this._domScreens.appendChild(this._screen.dom);
+    document.body.addEventListener("touchend", this._nextEnd, false);
+    return this._screen.show();
+  };
+
+  Game.prototype._nextEnd = function() {
+    document.body.removeEventListener("touchend", this._nextEnd, false);
+    this._started = false;
+    this._idx = -1;
+    save.setCurrentLevel(this._idx);
+    return this._onMenuMenu();
+  };
+
   Game.prototype._nextScreen = function() {
     return this._level.hide().then((function(_this) {
       return function() {
         _this._domGameContent.removeChild(_this._level.dom);
         _this._level.dispose();
+        _this._level = null;
         return _this._newScreen();
       };
     })(this));
   };
 
   Game.prototype._newScreen = function() {
-    this._screen = new Screen(this._idx + 1);
+    var idx;
+    idx = this._idx + 1;
+    if (idx >= data.levels.length) {
+      this._onEnd();
+      return;
+    }
+    this._screen = new Screen(idx);
     this._domScreens.appendChild(this._screen.dom);
     document.body.addEventListener("touchend", this._next, false);
     return this._screen.show();
@@ -325,12 +370,20 @@ Game = (function(_super) {
     this._domMenuMenu.removeEventListener("touchend", this._onMenuMenu, false);
     this._domMenuLevels.removeEventListener("touchend", this._onMenuLevels, false);
     this._domControlUndo.removeEventListener("touchend", this._onUndo, false);
-    return this._domControlReset.removeEventListener("touchend", this._onReset, false);
+    this._domControlReset.removeEventListener("touchend", this._onReset, false);
+    this._menuLevels.off("back", this._onMenuLevelsBack);
+    return this._menuLevels.off("new", this._onSelectLevel);
   };
 
   Game.prototype._dispose = function() {
-    this._domGameContent.removeChild(this._level.dom);
-    return this._level.dispose();
+    if (this._level) {
+      this._domGameContent.removeChild(this._level.dom);
+      this._level.dispose();
+    }
+    if (this._screen) {
+      this._domScreens.removeChild(this._screen.dom);
+      return this._screen = null;
+    }
   };
 
   return Game;
@@ -341,7 +394,7 @@ module.exports = Game;
 
 
 
-},{"Level":7,"MenuLevels":9,"Screen":11,"save":14,"templates/game.jade":15}],6:[function(require,module,exports){
+},{"Level":7,"MenuLevels":9,"Screen":11,"data.json":13,"save":14,"templates/game.jade":15}],6:[function(require,module,exports){
 var Elt, Goal, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -602,7 +655,7 @@ Level = (function(_super) {
   };
 
   Level.prototype._end = function() {
-    save.setLevel(this.idx);
+    save.setCurrentLevel(this.idx);
     return this.emit("complete");
   };
 
@@ -713,6 +766,7 @@ MenuLevels = (function(_super) {
   __extends(MenuLevels, _super);
 
   function MenuLevels() {
+    this._onBtLevel = __bind(this._onBtLevel, this);
     this._onBtBack = __bind(this._onBtBack, this);
     this.dom = domify(tpl);
     this._domLevels = this.dom.querySelectorAll(".levels-entry");
@@ -720,15 +774,37 @@ MenuLevels = (function(_super) {
   }
 
   MenuLevels.prototype.activate = function() {
-    return this._domBtBack.addEventListener("touchend", this._onBtBack, false);
+    var domLevel, _i, _len, _ref, _results;
+    this._domBtBack.addEventListener("touchend", this._onBtBack, false);
+    _ref = this._domLevels;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      domLevel = _ref[_i];
+      _results.push(domLevel.addEventListener("touchend", this._onBtLevel, false));
+    }
+    return _results;
   };
 
   MenuLevels.prototype._onBtBack = function() {
     return this.emit("back");
   };
 
+  MenuLevels.prototype._onBtLevel = function(e) {
+    var idx;
+    idx = parseInt(e.currentTarget.innerHTML);
+    if (idx > save.getLevel() + 1) {
+      return;
+    }
+    if (idx === save.getCurrentLevel() + 1) {
+      return this.emit("back");
+    } else {
+      return this.emit("new", idx - 1);
+    }
+  };
+
   MenuLevels.prototype.show = function(idx) {
     var domLevel, i, idxSave, _i, _len, _ref;
+    console.log("YO");
     idxSave = save.getLevel();
     _ref = this._domLevels;
     for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
@@ -738,7 +814,8 @@ MenuLevels = (function(_super) {
         domLevel.classList.add("selected");
       } else {
         domLevel.classList.remove("selected");
-        if (i > idxSave) {
+        console.log(idxSave, idxSave + 1);
+        if (i > idxSave + 1) {
           domLevel.classList.add("deactivate");
         }
       }
@@ -765,7 +842,15 @@ MenuLevels = (function(_super) {
   };
 
   MenuLevels.prototype.deactivate = function() {
-    return this._domBtBack.removeEventListener("touchend", this._onBtBack, false);
+    var domLevel, _i, _len, _ref, _results;
+    this._domBtBack.removeEventListener("touchend", this._onBtBack, false);
+    _ref = this._domLevels;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      domLevel = _ref[_i];
+      _results.push(domLevel.removeEventListener("touchend", this._onBtLevel, false));
+    }
+    return _results;
   };
 
   return MenuLevels;
@@ -818,7 +903,11 @@ Screen = (function() {
     if (idx < data.screens.length) {
       text = data.screens[idx];
     } else {
-      text = "Level " + idx;
+      if (idx === 9999) {
+        text = data.end;
+      } else {
+        text = "Level " + idx;
+      }
     }
     this.dom = domify(tplCompiled({
       text: text
@@ -976,10 +1065,10 @@ module.exports={
 		  [ 0, 0, 0, 0, 0 ]
 		],
 		[ [ 0, 0, 0, 0, 0 ],
-		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, "sab", 0, "ga", 0 ],
 		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, "mr", 0, "mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, 0, 0, 0, 0 ]
 		]
 	],
@@ -990,9 +1079,10 @@ module.exports={
 		"And if<br />you are stuck...<br />Just <strong>undo</strong> your<br />last action<br /> or <strong>reset</strong> the level.",
 		"You will discover new things the more you advance.",
 		"You will soon be on your own.",
-		"Wow. That's getting serious...",
+		"Wow...<br />That's getting<br /><strong>serious</strong><br />...",
 		"So... I guess it's time... Good luck!"
-	]
+	],
+	"end": "<strong>Congratz!</strong><br />I never thought you would made it...<br /><br />you can<br />start again some<br /><strong>levels</strong>,<br />or try some<br />new <strong>challenges!</strong>"
 }
 },{}],14:[function(require,module,exports){
 var Save;
@@ -1000,20 +1090,29 @@ var Save;
 Save = (function() {
   function Save() {
     this._idLevel = "fzfs-squares_level";
+    this._idCurrent = "fzfs-squares_level-current";
   }
 
   Save.prototype.setLevel = function(idx) {
     var currentLevel;
-    console.log("setLevel", idx);
     currentLevel = this.getLevel();
     if (idx < currentLevel) {
       return;
     }
-    return localStorage.setItem(this._idLevel, idx);
+    return localStorage.setItem(this._idLevel, parseInt(idx));
   };
 
   Save.prototype.getLevel = function() {
-    return localStorage.getItem(this._idLevel);
+    return parseInt(localStorage.getItem(this._idLevel));
+  };
+
+  Save.prototype.setCurrentLevel = function(idx) {
+    localStorage.setItem(this._idCurrent, parseInt(idx));
+    return this.setLevel(idx);
+  };
+
+  Save.prototype.getCurrentLevel = function() {
+    return parseInt(localStorage.getItem(this._idCurrent));
   };
 
   return Save;

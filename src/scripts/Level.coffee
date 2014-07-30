@@ -125,7 +125,7 @@ class Level extends Emitter
 			square.setPos square.xOrigin, square.yOrigin
 
 	_end: ->
-		save.setLevel @idx
+		save.setCurrentLevel @idx
 		@emit "complete"
 
 	hide: ->

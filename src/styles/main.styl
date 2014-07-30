@@ -28,20 +28,20 @@ lines = 6
 
 .menu-logo
   position relative
-  height 320px
+  height 280px
   bgBlue()
 
 .menu-logo-img
   position relative
   bg( "logo.png" )
   margin 0 auto
-  top 60px
+  top 40px
 
 .menu-actions
   position relative
   margin 0
   padding 0
-  margin-top 45px
+  margin-top 30px
 
 .menu-action
   list-style none
@@ -89,13 +89,15 @@ lines = 6
   position absolute
   top 20px
   right 22px
+  z-index 3
 
 .game-controls
   position absolute
   display inline-block
-  top 475px
+  bottom 40px
   left 0
   width 100%
+  z-index 1
 
 .game-control--reset
   display inline-block
@@ -104,7 +106,7 @@ lines = 6
 .game-control--undo
   display inline-block
   bg( "bt-undo.png" )
-  margin-right 60px
+  margin-right 180px
 
 #levels
   position absolute
@@ -180,7 +182,7 @@ lines = 6
 
 .elt-desc--arrow
   s = size / 8
-  bg-noreti( "arrow.png" )
+  bg( "arrow.png" )
   margin-left -9px
   margin-top -12px
   // border-top s solid transparent
@@ -200,19 +202,19 @@ lines = 6
   z-index 1 !important
 
 .square--a
-  bg-noreti( "square-a.png" )
+  bg( "square-a.png" )
 
-.goal--a
-  bg-noreti( "goal-a.png" )
+.goal--a .elt-desc
+  bg( "goal-a.png" )
 
 .square--b
-  bg-noreti( "square-b.png" )
+  bg( "square-b.png" )
 
-.goal--b
-  bg-noreti( "goal-b.png" ) 
+.goal--b .elt-desc
+  bg( "goal-b.png" ) 
 
 .square--c
-  bg-noreti( "square-c.png" )
+  bg( "square-c.png" )
 
-.goal--c
-  bg-noreti( "goal-c.png" )
+.goal--c .elt-desc
+  bg( "goal-c.png" )
