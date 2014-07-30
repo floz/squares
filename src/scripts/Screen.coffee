@@ -3,11 +3,18 @@ data = require "data.json"
 
 class Screen
 
-	constructor: ( idx ) ->
+	constructor: ( idx ) -> 
 		tplCompiled = _.template tpl
-		@dom = domify tplCompiled { text: data.screens[ idx ] }
+		if idx < data.screens.length
+			text = data.screens[ idx ]
+		else
+			text = "Level #{idx}"
+		@dom = domify tplCompiled { text: text }
 
 	show: ->
+		TweenLite.set @dom,
+			css:
+				alpha: 0
 		TweenLite.to @dom, .4,
 			css:
 				alpha: 1
@@ -18,6 +25,6 @@ class Screen
 			css:
 				alpha: 0
 
-		done speed * 1000
+		done ( speed - .1 )* 1000
 
 module.exports = Screen

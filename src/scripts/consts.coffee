@@ -1,1 +1,1 @@
-module.exports.size = 50
+module.exports.size = 64

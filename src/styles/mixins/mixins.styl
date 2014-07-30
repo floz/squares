@@ -1,0 +1,21 @@
+baseImg = "./imgs/"
+
+bg( name )
+  path = baseImg + name
+  size = image-size( path )
+  w = (size[ 0 ] / 2)
+  h = (size[ 1 ] / 2)
+  background transparent url( path )
+  width w
+  height h
+  background-size w h
+
+bg-noreti( name ) 
+	path = baseImg + name
+  size = image-size( path )
+  w = (size[ 0 ])
+  h = (size[ 1 ])
+  background transparent url( path )
+  width w
+  height h
+  background-size w h

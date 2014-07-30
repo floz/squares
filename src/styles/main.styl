@@ -1,4 +1,9 @@
 @import "nib"
+@import "mixins/mixins"
+
+bgBlue()
+  background #3bb1ca url( "imgs/repeat-blue.png" ) repeat
+  background-size 18px 22px
 
 html, body
   background-color #f0f
@@ -7,26 +12,129 @@ html, body
   width 100%
   height 100%
   position relative
+  bgBlue()
+  overflow hidden
 
-size = 50px
+size = 64px
 cols = 5
 lines = 6
 
+#menu
+  position absolute
+  width 100%
+  height 100%
+  background #72559e url( "imgs/repeat-purple.png" ) repeat
+  background-size 18px 22px
+
+.menu-logo
+  position relative
+  height 320px
+  bgBlue()
+
+.menu-logo-img
+  position relative
+  bg( "logo.png" )
+  margin 0 auto
+  top 60px
+
+.menu-actions
+  position relative
+  margin 0
+  padding 0
+  margin-top 45px
+
+.menu-action
+  list-style none
+
+.menu-action--play
+  bg( "play.png" )
+  margin 0 auto
+
+.menu-action--challenge
+  bg( "challenge.png" )
+  margin 0 auto
+
+.game-holder
+  position absolute
+  width 100%
+  height 100%
+
 #game
   position absolute
-  background-color rgba( 0, 0, 0, .5 )
   width size * cols
-  height size * lines
+  height 100%
   left 50%
-  bottom 50px
   transform translateX( -50% )
-
-#controls
-  width 100%
-  position absolute
-  height 100px
-  top 40px
   text-align center
+  opacity 0
+
+.game-content
+  position absolute
+  top 75px
+  width 100%
+  height size * lines
+
+.game-menu
+  position absolute
+  width 100%
+
+.game-menu-item--menu
+  bg( "bt-menu.png" )
+  position relative
+  top 25px
+  left 25px
+
+.game-menu-item--levels
+  bg( "bt-levels.png" )
+  position absolute
+  top 20px
+  right 22px
+
+.game-controls
+  position absolute
+  display inline-block
+  top 475px
+  left 0
+  width 100%
+
+.game-control--reset
+  display inline-block
+  bg( "bt-reset.png" )
+
+.game-control--undo
+  display inline-block
+  bg( "bt-undo.png" )
+  margin-right 60px
+
+#levels
+  position absolute
+  width 100%
+  height 100%
+  bgBlue()
+  z-index 2 !important
+  .bt-back
+    position relative
+    left 20px
+    top 15px
+    bg( "bt-back.png" )
+
+.levels-entries
+  display block
+  overflow hidden
+  position relative
+  top 25px
+  left 7px
+
+.levels-entry
+  bg( "bg-level-list.png" )
+  font normal 20px/45px "pacificoregular"
+  color #fff
+  float left
+  margin-right 5px
+  &.selected
+    bg( "bg-level-list-current.png" )
+  &.deactivate
+    opacity .25
 
 #screens
   position absolute
@@ -39,14 +147,21 @@ lines = 6
 .screen
   display table-cell
   vertical-align middle
-  background-color rgba( 0, 0, 0, .5 )
   color #fff
-  font-size 36px
+  font normal 25px/30px "open_sansextrabold"
+  text-shadow 3px 6px rgba( 15, 114, 146, .5 )
+  text-transform uppercase
+  bgBlue()
+  strong
+    font-family "pacificoregular"
+    color #f9e36a
+    text-transform none
 
 .level
   position relative
   width 100%
   height 100%
+  opacity 0
 
 .elt
   position absolute
@@ -65,11 +180,14 @@ lines = 6
 
 .elt-desc--arrow
   s = size / 8
-  border-top s solid transparent
-  border-bottom s solid transparent
-  border-left s solid #000
-  margin-left - (s / 2)
-  margin-top - (s / 2) - 1px
+  bg-noreti( "arrow.png" )
+  margin-left -9px
+  margin-top -12px
+  // border-top s solid transparent
+  // border-bottom s solid transparent
+  // border-left s solid #000
+  // margin-left - (s / 2)
+  // margin-top - (s / 2) - 1px
   // transform translateX( -40% ) translateY( -40% )
 
 .elt-desc--circle
@@ -82,19 +200,19 @@ lines = 6
   z-index 1 !important
 
 .square--a
-  background-color #f00  
+  bg-noreti( "square-a.png" )
 
-.goal--a .elt-desc
-  background-color #f00  
+.goal--a
+  bg-noreti( "goal-a.png" )
 
 .square--b
-  background-color #0f0  
+  bg-noreti( "square-b.png" )
 
-.goal--b .elt-desc
-  background-color #0f0  
+.goal--b
+  bg-noreti( "goal-b.png" ) 
 
 .square--c
-  background-color #00f  
+  bg-noreti( "square-c.png" )
 
-.goal--c .elt-desc
-  background-color #00f  
+.goal--c
+  bg-noreti( "goal-c.png" )

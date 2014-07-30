@@ -1,6 +1,7 @@
 tpl = require "templates/level.jade"
 data = require "data.json"
 factory = require "EltFactory"
+save = require "save"
 
 Square = require "Square"
 Goal = require "Goal"
@@ -8,17 +9,20 @@ Modifier = require "Modifier"
 
 class Level extends Emitter
 
-	constructor: ( @id ) ->
+	constructor: ( @idx ) ->
 		@dom = domify tpl
+		
 		@_elts = []
 		@_squares = []
 		@_goals = []
 		@_modifiers = []
 
+		@_history = []
+
 		@canTouch = true
 
 	create: ->
-		dataLevel = data.levels[ @id ]
+		dataLevel = data.levels[ @idx ]
 		
 		fragment = document.createDocumentFragment()
 
@@ -40,6 +44,10 @@ class Level extends Emitter
 		@dom.appendChild fragment
 
 	show: ->
+		TweenLite.to @dom, .2,
+			css:
+				alpha: 1
+
 		speed = .4
 		for elt in @_elts
 			TweenLite.set elt.dom,
@@ -69,7 +77,12 @@ class Level extends Emitter
 					@_end()
 				@canTouch = true
 
-			@_updateOtherSquares square, square.mov
+			history =
+				targets: [ square ]
+				mov: square.mov
+			@_history.push history				
+
+			@_updateOtherSquares square, square.mov, history
 
 	_updateModifiers: ->
 		for square in @_squares
@@ -77,12 +90,13 @@ class Level extends Emitter
 				if square.x == modifier.x && square.y == modifier.y
 					square.setDirection modifier.dir
 
-	_updateOtherSquares: ( square, mov ) ->
+	_updateOtherSquares: ( square, mov, history ) ->
 		for otherSquare in @_squares
 			continue if otherSquare == square
 			if otherSquare.x == square.x && otherSquare.y == square.y
 				otherSquare.move mov.x, mov.y
-				@_updateOtherSquares otherSquare, mov
+				history.targets.push otherSquare
+				@_updateOtherSquares otherSquare, mov, history
 
 	_isComplete: ->
 		countValid = 0
@@ -94,11 +108,24 @@ class Level extends Emitter
 
 		countValid == @_squares.length
 
+	undo: ->
+		return if not @canTouch
+		prevAction = @_history.pop()
+		return if not prevAction
+		@canTouch = false
+		mov = { x: -prevAction.mov.x, y: -prevAction.mov.y }
+		for target in prevAction.targets
+			move = target.move mov.x, mov.y
+		move.then =>
+			@_updateModifiers()
+			@canTouch = true
+
 	reset: ->
 		for square in @_squares
 			square.setPos square.xOrigin, square.yOrigin
 
 	_end: ->
+		save.setLevel @idx
 		@emit "complete"
 
 	hide: ->
@@ -110,5 +137,10 @@ class Level extends Emitter
 					scale: 0
 				ease: Back.easeIn
 		done speed * 1000
+
+	dispose: ->
+		for square in @_squares
+			square.deactivate()
+			square.off "touch", @_onTouch
 
 module.exports = Level

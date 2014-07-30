@@ -11,15 +11,17 @@ class Square extends Elt
 
 		@setDirection dir, false
 
-	activate: ( cb ) ->
+	activate: ->
 		@dom.addEventListener "touchend", @_onTouch, false
+
+	deactivate: ->
+		@dom.removeEventListener "touchend", @_onTouch, false
 
 	_onTouch: =>
 		@emitter.emit "touch", @
 
 	move: ( x = 0, y = 0 ) ->
 		if x != 0 || y !=0
-			console.log x, y
 			@x += x
 			@y += y
 		else

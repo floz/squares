@@ -3,50 +3,34 @@ _.templateSettings =
 
 ##
 
-Level = require "Level"
-Screen = require "Screen"
+Game = require "Game"
+Menu = require "Menu"
 
 ##
 
-domGame = document.getElementById "game"
-domScreens = document.getElementById "screens"
+save = require "save"
+console.log save.getLevel()
 
-##
+game = new Game()
+game.on "menu", ->
+	game.hide().then ->
+		document.body.removeChild game.dom
+		
+		document.body.appendChild menu.dom
+		menu.activate()
+		menu.show()
 
-level = null
-screen = null
+menu = new Menu()
+document.body.appendChild menu.dom
+menu.activate()
+menu.on "play", ->
+	menu.hide().then ->
+		document.body.removeChild menu.dom
+		menu.deactivate()
 
-domControls = document.getElementById "controls"
-domControls.addEventListener "touchend", ->
-	level.reset()
-, false
+		startGame()
 
-idx = -1
+startGame = ->
+	document.body.appendChild game.dom
+	game.start()
 
-start = ->
-	nextLevel()
-
-nextLevel = ->
-	idx++
-	level = new Level idx
-	level.on "complete", nextScreen
-	level.create()
-	domGame.appendChild level.dom
-	level.show().then ->
-		level.start()
-
-nextScreen = ->
-	level.hide().then ->
-		domGame.removeChild level.dom
-
-		screen = new Screen idx
-		domScreens.appendChild screen.dom
-		document.body.addEventListener "touchend", next, false
-
-next = ->
-	document.body.removeEventListener "touchend", next, false
-	screen.hide().then ->
-		domScreens.removeChild screen.dom
-		nextLevel()
-
-start()

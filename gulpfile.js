@@ -31,7 +31,7 @@ gulp.task( "browser-sync", function() {
 
 gulp.task( "styles", function() {
   gulp.src( src.styles )
-      .pipe( stylus( { use: [ nib() ], url: { name: "url", paths: [ "app/img" ], limit: false } } ) ) // CHANGER SI BESOIN => remettre une limit < 10
+      .pipe( stylus( { use: [ nib() ], url: { name: "url", paths: [ "src/imgs" ], limit: false } } ) ) // CHANGER SI BESOIN => remettre une limit < 10
         .on( "error", gutil.log )
         .on( "error", gutil.beep )
       .pipe( gulp.dest( "app/css/" ) );
@@ -69,6 +69,7 @@ gulp.task( "watch", function() {
   gulp.watch( "src/styles/**/*.styl", [ "styles" ] );
   gulp.watch( "src/templates/**/*.jade", [ "templates", "scripts" ] );
   gulp.watch( "src/scripts/**/*.coffee", [ "scripts" ] );
+  gulp.watch( "src/scripts/**/*.json", [ "scripts" ] );
   gulp.watch( "src/styles/img/**/*", [ "cssimg" ] );
 
 } );
