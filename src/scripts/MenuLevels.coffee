@@ -26,7 +26,6 @@ class MenuLevels extends Emitter
 			@emit "new", idx - 1
 
 	show: ( idx ) ->
-		console.log "YO"
 		idxSave = save.getLevel()
 		for domLevel, i in @_domLevels
 			domLevel.classList.remove "deactivate"

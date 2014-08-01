@@ -804,7 +804,6 @@ MenuLevels = (function(_super) {
 
   MenuLevels.prototype.show = function(idx) {
     var domLevel, i, idxSave, _i, _len, _ref;
-    console.log("YO");
     idxSave = save.getLevel();
     _ref = this._domLevels;
     for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
