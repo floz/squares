@@ -2,7 +2,7 @@
 @import "mixins/mixins"
 
 bgBlue()
-  background #3bb1ca url( "imgs/repeat-blue.png" ) repeat
+  background #3c86ca url( "imgs/repeat-blue.png" ) repeat
   background-size 18px 22px
 
 html, body
@@ -81,43 +81,47 @@ lines = 6
 .game-menu-item--menu
   bg( "bt-menu.png" )
   position relative
-  top 25px
-  left 25px
+  top 12px
+  left 20px
 
 .game-menu-item--levels
   bg( "bt-levels.png" )
   position absolute
   top 20px
-  right 22px
+  right 20px
   z-index 3
 
 .game-controls
   position absolute
-  display inline-block
-  bottom 40px
+  bottom 78px
   left 0
   width 100%
   z-index 1
 
+.game-control
+  display block
+  position absolute
+  top 0
+
 .game-control--reset
-  display inline-block
   bg( "bt-reset.png" )
+  right 20px
 
 .game-control--undo
-  display inline-block
   bg( "bt-undo.png" )
-  margin-right 180px
+  left 20px
+  top 12px
 
 #levels
   position absolute
   width 100%
   height 100%
   bgBlue()
-  z-index 2 !important
+  z-index 3 !important
   .bt-back
     position relative
-    left 20px
-    top 15px
+    top 12px
+    left 21px
     bg( "bt-back.png" )
 
 .levels-entries
@@ -137,6 +141,9 @@ lines = 6
     bg( "bg-level-list-current.png" )
   &.deactivate
     opacity .25
+  span
+    position relative
+    left -1px
 
 #screens
   position absolute

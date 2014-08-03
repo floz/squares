@@ -18,7 +18,8 @@ class MenuLevels extends Emitter
 		@emit "back"
 
 	_onBtLevel: ( e )  =>
-		idx = parseInt e.currentTarget.innerHTML
+		domSpan = e.currentTarget.querySelector "span"
+		idx = parseInt domSpan.innerHTML
 		return if idx > save.getLevel() + 1
 		if idx == save.getCurrentLevel() + 1
 			@emit "back"

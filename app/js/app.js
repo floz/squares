@@ -94,14 +94,14 @@ Elt = (function() {
     }
     data = {
       css: {
-        rotation: r
+        rotation: r + 180
       },
       ease: Back.easeOut
     };
     if (animate) {
-      return TweenLite.to(this.domDesc, .25, data);
+      return TweenLite.to(this.dom, .25, data);
     } else {
-      return TweenLite.set(this.domDesc, data);
+      return TweenLite.set(this.dom, data);
     }
   };
 
@@ -649,7 +649,8 @@ Level = (function(_super) {
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       square = _ref[_i];
-      _results.push(square.setPos(square.xOrigin, square.yOrigin));
+      square.setPos(square.xOrigin, square.yOrigin);
+      _results.push(square.setDirection(square.dir, false));
     }
     return _results;
   };
@@ -790,8 +791,9 @@ MenuLevels = (function(_super) {
   };
 
   MenuLevels.prototype._onBtLevel = function(e) {
-    var idx;
-    idx = parseInt(e.currentTarget.innerHTML);
+    var domSpan, idx;
+    domSpan = e.currentTarget.querySelector("span");
+    idx = parseInt(domSpan.innerHTML);
     if (idx > save.getLevel() + 1) {
       return;
     }
@@ -963,13 +965,14 @@ Square = (function(_super) {
   function Square(type, dir) {
     var tplCompiled;
     this.type = type;
+    this.dir = dir;
     this._onTouch = __bind(this._onTouch, this);
     tplCompiled = _.template(tpl);
     this.dom = domify(tplCompiled({
       type: type
     }));
     Square.__super__.constructor.apply(this, arguments);
-    this.setDirection(dir, false);
+    this.setDirection(this.dir, false);
   }
 
   Square.prototype.activate = function() {
@@ -1132,7 +1135,7 @@ module.exports = "<div class=\"elt goal goal--{{type}}\"><div class=\"elt-desc e
 module.exports = "<div class=\"level\"></div>" ;
 
 },{}],18:[function(require,module,exports){
-module.exports = "<div id=\"levels\"><div class=\"bt-back\"></div><ul class=\"levels-entries\"><div class=\"levels-entry\">0</div><div class=\"levels-entry\">1</div><div class=\"levels-entry\">2</div><div class=\"levels-entry\">3</div><div class=\"levels-entry\">4</div><div class=\"levels-entry\">5</div><div class=\"levels-entry\">6</div></ul></div>" ;
+module.exports = "<div id=\"levels\"><div class=\"bt-back\"></div><ul class=\"levels-entries\"><div class=\"levels-entry\"><span>0</span></div><div class=\"levels-entry\"><span>1</span></div><div class=\"levels-entry\"><span>2</span></div><div class=\"levels-entry\"><span>3</span></div><div class=\"levels-entry\"><span>4</span></div><div class=\"levels-entry\"><span>5</span></div><div class=\"levels-entry\"><span>6</span></div></ul></div>" ;
 
 },{}],19:[function(require,module,exports){
 module.exports = "<div id=\"menu\"><div class=\"menu-logo\"><div class=\"menu-logo-img\"></div></div><ul class=\"menu-actions\"><li class=\"menu-action menu-action--play\"></li><li class=\"menu-action menu-action--challenge\"></li></ul></div>" ;
@@ -1144,6 +1147,6 @@ module.exports = "<div class=\"elt modifier\"><div class=\"elt-desc elt-desc--ar
 module.exports = "<div class=\"screen\">{{ text }}</div>" ;
 
 },{}],22:[function(require,module,exports){
-module.exports = "<div class=\"elt square square--{{type}}\"><div class=\"elt-desc elt-desc--arrow\"></div></div>" ;
+module.exports = "<div class=\"elt square square--{{type}}\"></div>" ;
 
 },{}]},{},[1])

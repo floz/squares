@@ -4,12 +4,12 @@ Elt = require "Elt"
 
 class Square extends Elt
 
-	constructor: ( @type, dir ) ->
+	constructor: ( @type, @dir ) ->
 		tplCompiled = _.template tpl
 		@dom = domify tplCompiled { type: type }
 		super
 
-		@setDirection dir, false
+		@setDirection @dir, false
 
 	activate: ->
 		@dom.addEventListener "touchend", @_onTouch, false

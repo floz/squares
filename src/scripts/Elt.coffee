@@ -29,13 +29,13 @@ class Elt
 
 		data =
 			css:
-				rotation: r
+				rotation: r + 180
 			ease: Back.easeOut
 
 		if animate
-			TweenLite.to @domDesc, .25, data
+			TweenLite.to @dom, .25, data
 		else
-			TweenLite.set @domDesc, data
+			TweenLite.set @dom, data
 
 	setPos: ( @x, @y ) ->
 		@xOrigin = @x

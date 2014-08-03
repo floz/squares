@@ -123,6 +123,7 @@ class Level extends Emitter
 	reset: ->
 		for square in @_squares
 			square.setPos square.xOrigin, square.yOrigin
+			square.setDirection square.dir, false
 
 	_end: ->
 		save.setCurrentLevel @idx
