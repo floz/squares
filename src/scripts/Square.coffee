@@ -28,6 +28,9 @@ class Square extends Elt
 			@x += @mov.x
 			@y += @mov.y
 
+		@go @x, @y
+
+	go: ( @x, @y ) ->
 		speed = .4
 		TweenLite.to @dom, speed,
 			css:
@@ -36,5 +39,6 @@ class Square extends Elt
 			ease: Expo.easeOut
 
 		done ( speed - .1 ) * 1000
+
 
 module.exports = Square

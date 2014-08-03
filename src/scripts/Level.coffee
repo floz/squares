@@ -71,15 +71,14 @@ class Level extends Emitter
 	_onTouch: ( square ) =>
 		if @canTouch
 			@canTouch = false
+			history = []
+			history.push { target: square, x: square.x, y: square.y, dir: square.dir }
 			square.move().then =>
 				@_updateModifiers()
 				if @_isComplete()
 					@_end()
 				@canTouch = true
 
-			history =
-				targets: [ square ]
-				mov: square.mov
 			@_history.push history				
 
 			@_updateOtherSquares square, square.mov, history
@@ -94,8 +93,8 @@ class Level extends Emitter
 		for otherSquare in @_squares
 			continue if otherSquare == square
 			if otherSquare.x == square.x && otherSquare.y == square.y
+				history.push { target: otherSquare, x: otherSquare.x, y: otherSquare.y, dir: otherSquare.dir }
 				otherSquare.move mov.x, mov.y
-				history.targets.push otherSquare
 				@_updateOtherSquares otherSquare, mov, history
 
 	_isComplete: ->
@@ -110,14 +109,14 @@ class Level extends Emitter
 
 	undo: ->
 		return if not @canTouch
-		prevAction = @_history.pop()
-		return if not prevAction
+		prevActions = @_history.pop()
+		return if not prevActions
 		@canTouch = false
-		mov = { x: -prevAction.mov.x, y: -prevAction.mov.y }
-		for target in prevAction.targets
-			move = target.move mov.x, mov.y
-		move.then =>
-			@_updateModifiers()
+		for prevAction in prevActions
+			go = prevAction.target.go prevAction.x, prevAction.y
+			prevAction.target.setDirection prevAction.dir
+
+		go.then =>
 			@canTouch = true
 
 	reset: ->

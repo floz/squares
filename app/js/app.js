@@ -535,6 +535,13 @@ Level = (function(_super) {
     var history;
     if (this.canTouch) {
       this.canTouch = false;
+      history = [];
+      history.push({
+        target: square,
+        x: square.x,
+        y: square.y,
+        dir: square.dir
+      });
       square.move().then((function(_this) {
         return function() {
           _this._updateModifiers();
@@ -544,10 +551,6 @@ Level = (function(_super) {
           return _this.canTouch = true;
         };
       })(this));
-      history = {
-        targets: [square],
-        mov: square.mov
-      };
       this._history.push(history);
       return this._updateOtherSquares(square, square.mov, history);
     }
@@ -587,8 +590,13 @@ Level = (function(_super) {
         continue;
       }
       if (otherSquare.x === square.x && otherSquare.y === square.y) {
+        history.push({
+          target: otherSquare,
+          x: otherSquare.x,
+          y: otherSquare.y,
+          dir: otherSquare.dir
+        });
         otherSquare.move(mov.x, mov.y);
-        history.targets.push(otherSquare);
         _results.push(this._updateOtherSquares(otherSquare, mov, history));
       } else {
         _results.push(void 0);
@@ -617,27 +625,22 @@ Level = (function(_super) {
   };
 
   Level.prototype.undo = function() {
-    var mov, move, prevAction, target, _i, _len, _ref;
+    var go, prevAction, prevActions, _i, _len;
     if (!this.canTouch) {
       return;
     }
-    prevAction = this._history.pop();
-    if (!prevAction) {
+    prevActions = this._history.pop();
+    if (!prevActions) {
       return;
     }
     this.canTouch = false;
-    mov = {
-      x: -prevAction.mov.x,
-      y: -prevAction.mov.y
-    };
-    _ref = prevAction.targets;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      target = _ref[_i];
-      move = target.move(mov.x, mov.y);
+    for (_i = 0, _len = prevActions.length; _i < _len; _i++) {
+      prevAction = prevActions[_i];
+      go = prevAction.target.go(prevAction.x, prevAction.y);
+      prevAction.target.setDirection(prevAction.dir);
     }
-    return move.then((function(_this) {
+    return go.then((function(_this) {
       return function() {
-        _this._updateModifiers();
         return _this.canTouch = true;
       };
     })(this));
@@ -988,7 +991,6 @@ Square = (function(_super) {
   };
 
   Square.prototype.move = function(x, y) {
-    var speed;
     if (x == null) {
       x = 0;
     }
@@ -1002,6 +1004,13 @@ Square = (function(_super) {
       this.x += this.mov.x;
       this.y += this.mov.y;
     }
+    return this.go(this.x, this.y);
+  };
+
+  Square.prototype.go = function(x, y) {
+    var speed;
+    this.x = x;
+    this.y = y;
     speed = .4;
     TweenLite.to(this.dom, speed, {
       css: {
