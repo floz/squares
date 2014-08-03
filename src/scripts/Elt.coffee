@@ -8,6 +8,7 @@ class Elt
 		@mov = { x: 0, y: 0 }
 
 	setDirection: ( value, animate = true ) ->
+		@dirCurrent = value
 		r = 0
 		switch value
 			when "l"  

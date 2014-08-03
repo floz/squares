@@ -31,13 +31,14 @@ class Level extends Emitter
 			x = 0
 			for dataElt in line
 				if dataElt
-					elt = factory.get dataElt
-					elt.setPos x, y
-					@_squares.push elt if elt instanceof Square
-					@_goals.push elt if elt instanceof Goal
-					@_modifiers.push elt if elt instanceof Modifier
-					fragment.appendChild elt.dom
-					@_elts.push elt
+					elts = factory.get dataElt
+					for elt in elts
+						elt.setPos x, y
+						@_squares.push elt if elt instanceof Square
+						@_goals.push elt if elt instanceof Goal
+						@_modifiers.push elt if elt instanceof Modifier
+						fragment.appendChild elt.dom
+						@_elts.push elt
 				x++
 			y++
 
@@ -72,9 +73,8 @@ class Level extends Emitter
 		if @canTouch
 			@canTouch = false
 			history = []
-			history.push { target: square, x: square.x, y: square.y, dir: square.dir }
+			history.push { target: square, x: square.x, y: square.y, dir: square.dirCurrent }
 			square.move().then =>
-				@_updateModifiers()
 				if @_isComplete()
 					@_end()
 				@canTouch = true
@@ -82,8 +82,9 @@ class Level extends Emitter
 			@_history.push history				
 
 			@_updateOtherSquares square, square.mov, history
+			setTimeout @_updateModifiers, 50
 
-	_updateModifiers: ->
+	_updateModifiers: =>
 		for square in @_squares
 			for modifier in @_modifiers
 				if square.x == modifier.x && square.y == modifier.y
@@ -93,7 +94,7 @@ class Level extends Emitter
 		for otherSquare in @_squares
 			continue if otherSquare == square
 			if otherSquare.x == square.x && otherSquare.y == square.y
-				history.push { target: otherSquare, x: otherSquare.x, y: otherSquare.y, dir: otherSquare.dir }
+				history.push { target: otherSquare, x: otherSquare.x, y: otherSquare.y, dir: otherSquare.dirCurrent }
 				otherSquare.move mov.x, mov.y
 				@_updateOtherSquares otherSquare, mov, history
 
@@ -120,6 +121,7 @@ class Level extends Emitter
 			@canTouch = true
 
 	reset: ->
+		@_history = []
 		for square in @_squares
 			square.setPos square.xOrigin, square.yOrigin
 			square.setDirection square.dir, false

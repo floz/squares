@@ -70,6 +70,7 @@ Elt = (function() {
     if (animate == null) {
       animate = true;
     }
+    this.dirCurrent = value;
     r = 0;
     switch (value) {
       case "l":
@@ -149,18 +150,26 @@ EltFactory = (function() {
   function EltFactory() {}
 
   EltFactory.prototype.get = function(id) {
-    var data1, data2, idElt;
-    idElt = id.substr(0, 1);
-    data1 = id.substr(1, 1);
-    data2 = id.substr(2, 1);
-    switch (idElt) {
-      case "s":
-        return new Square(data1, data2);
-      case "g":
-        return new Goal(data1);
-      case "m":
-        return new Modifier(data1);
+    var data1, data2, elts, idElt, ids, _i, _len;
+    elts = [];
+    ids = id.split("-");
+    for (_i = 0, _len = ids.length; _i < _len; _i++) {
+      id = ids[_i];
+      idElt = id.substr(0, 1);
+      data1 = id.substr(1, 1);
+      data2 = id.substr(2, 1);
+      switch (idElt) {
+        case "s":
+          elts.push(new Square(data1, data2));
+          break;
+        case "g":
+          elts.push(new Goal(data1));
+          break;
+        case "m":
+          elts.push(new Modifier(data1));
+      }
     }
+    return elts;
   };
 
   return EltFactory;
@@ -448,6 +457,7 @@ Level = (function(_super) {
 
   function Level(idx) {
     this.idx = idx;
+    this._updateModifiers = __bind(this._updateModifiers, this);
     this._onTouch = __bind(this._onTouch, this);
     this.dom = domify(tpl);
     this._elts = [];
@@ -459,7 +469,7 @@ Level = (function(_super) {
   }
 
   Level.prototype.create = function() {
-    var dataElt, dataLevel, elt, fragment, line, x, y, _i, _j, _len, _len1;
+    var dataElt, dataLevel, elt, elts, fragment, line, x, y, _i, _j, _k, _len, _len1, _len2;
     dataLevel = data.levels[this.idx];
     fragment = document.createDocumentFragment();
     y = 0;
@@ -469,19 +479,22 @@ Level = (function(_super) {
       for (_j = 0, _len1 = line.length; _j < _len1; _j++) {
         dataElt = line[_j];
         if (dataElt) {
-          elt = factory.get(dataElt);
-          elt.setPos(x, y);
-          if (elt instanceof Square) {
-            this._squares.push(elt);
+          elts = factory.get(dataElt);
+          for (_k = 0, _len2 = elts.length; _k < _len2; _k++) {
+            elt = elts[_k];
+            elt.setPos(x, y);
+            if (elt instanceof Square) {
+              this._squares.push(elt);
+            }
+            if (elt instanceof Goal) {
+              this._goals.push(elt);
+            }
+            if (elt instanceof Modifier) {
+              this._modifiers.push(elt);
+            }
+            fragment.appendChild(elt.dom);
+            this._elts.push(elt);
           }
-          if (elt instanceof Goal) {
-            this._goals.push(elt);
-          }
-          if (elt instanceof Modifier) {
-            this._modifiers.push(elt);
-          }
-          fragment.appendChild(elt.dom);
-          this._elts.push(elt);
         }
         x++;
       }
@@ -540,11 +553,10 @@ Level = (function(_super) {
         target: square,
         x: square.x,
         y: square.y,
-        dir: square.dir
+        dir: square.dirCurrent
       });
       square.move().then((function(_this) {
         return function() {
-          _this._updateModifiers();
           if (_this._isComplete()) {
             _this._end();
           }
@@ -552,7 +564,8 @@ Level = (function(_super) {
         };
       })(this));
       this._history.push(history);
-      return this._updateOtherSquares(square, square.mov, history);
+      this._updateOtherSquares(square, square.mov, history);
+      return setTimeout(this._updateModifiers, 50);
     }
   };
 
@@ -594,7 +607,7 @@ Level = (function(_super) {
           target: otherSquare,
           x: otherSquare.x,
           y: otherSquare.y,
-          dir: otherSquare.dir
+          dir: otherSquare.dirCurrent
         });
         otherSquare.move(mov.x, mov.y);
         _results.push(this._updateOtherSquares(otherSquare, mov, history));
@@ -648,6 +661,7 @@ Level = (function(_super) {
 
   Level.prototype.reset = function() {
     var square, _i, _len, _ref, _results;
+    this._history = [];
     _ref = this._squares;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -756,15 +770,19 @@ module.exports = Menu;
 
 
 
-},{"templates/menu.jade":19}],9:[function(require,module,exports){
-var MenuLevels, save, tpl,
+},{"templates/menu.jade":20}],9:[function(require,module,exports){
+var MenuLevels, data, save, tpl, tplEntry,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 tpl = require("templates/menu-levels.jade");
 
+tplEntry = require("templates/menu-levels-entry.jade");
+
 save = require("save");
+
+data = require("data.json");
 
 MenuLevels = (function(_super) {
   __extends(MenuLevels, _super);
@@ -773,20 +791,35 @@ MenuLevels = (function(_super) {
     this._onBtLevel = __bind(this._onBtLevel, this);
     this._onBtBack = __bind(this._onBtBack, this);
     this.dom = domify(tpl);
+    this._domLevelsCnt = this.dom.querySelector(".levels-entries");
+    this._tplEntryCompiled = _.template(tplEntry);
+    this._createList();
     this._domLevels = this.dom.querySelectorAll(".levels-entry");
     this._domBtBack = this.dom.querySelector(".bt-back");
   }
 
+  MenuLevels.prototype._createList = function() {
+    var dom, fragment, i, level, _i, _len, _ref;
+    fragment = document.createDocumentFragment();
+    _ref = data.levels;
+    for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+      level = _ref[i];
+      dom = domify(this._tplEntryCompiled({
+        idx: i
+      }));
+      fragment.appendChild(dom);
+    }
+    return this._domLevelsCnt.appendChild(fragment);
+  };
+
   MenuLevels.prototype.activate = function() {
-    var domLevel, _i, _len, _ref, _results;
+    var domLevel, _i, _len, _ref;
     this._domBtBack.addEventListener("touchend", this._onBtBack, false);
     _ref = this._domLevels;
-    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       domLevel = _ref[_i];
-      _results.push(domLevel.addEventListener("touchend", this._onBtLevel, false));
+      domLevel.addEventListener("touchend", this._onBtLevel, false);
     }
-    return _results;
   };
 
   MenuLevels.prototype._onBtBack = function() {
@@ -846,15 +879,13 @@ MenuLevels = (function(_super) {
   };
 
   MenuLevels.prototype.deactivate = function() {
-    var domLevel, _i, _len, _ref, _results;
+    var domLevel, _i, _len, _ref;
     this._domBtBack.removeEventListener("touchend", this._onBtBack, false);
     _ref = this._domLevels;
-    _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       domLevel = _ref[_i];
-      _results.push(domLevel.removeEventListener("touchend", this._onBtLevel, false));
+      domLevel.removeEventListener("touchend", this._onBtLevel, false);
     }
-    return _results;
   };
 
   return MenuLevels;
@@ -865,7 +896,7 @@ module.exports = MenuLevels;
 
 
 
-},{"save":14,"templates/menu-levels.jade":18}],10:[function(require,module,exports){
+},{"data.json":13,"save":14,"templates/menu-levels-entry.jade":18,"templates/menu-levels.jade":19}],10:[function(require,module,exports){
 var Elt, Modifier, tpl,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -893,7 +924,7 @@ module.exports = Modifier;
 
 
 
-},{"Elt":3,"templates/modifier.jade":20}],11:[function(require,module,exports){
+},{"Elt":3,"templates/modifier.jade":21}],11:[function(require,module,exports){
 var Screen, data, tpl;
 
 tpl = require("templates/screen.jade");
@@ -950,7 +981,7 @@ module.exports = Screen;
 
 
 
-},{"data.json":13,"templates/screen.jade":21}],12:[function(require,module,exports){
+},{"data.json":13,"templates/screen.jade":22}],12:[function(require,module,exports){
 var Elt, Square, consts, tpl,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
@@ -1030,7 +1061,7 @@ module.exports = Square;
 
 
 
-},{"Consts":2,"Elt":3,"templates/square.jade":22}],13:[function(require,module,exports){
+},{"Consts":2,"Elt":3,"templates/square.jade":23}],13:[function(require,module,exports){
 module.exports={
 	"levels": [
 		[ [ 0, 0, 0, 0, 0 ],
@@ -1080,6 +1111,104 @@ module.exports={
 		  [ 0, 0, 0, 0, 0 ],
 		  [ 0, "mr", 0, "mt", 0 ],
 		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab", 0, "ga", "gb" ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, "mr-sbr", 0, "mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, "ga", "gb", 0, 0 ],
+		  [ "sar-mr", 0, "sbt-mt", "ml", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, "sab", 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ "gb", "ga", "mr", "gc", "scl" ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, "sbt", 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ "sar", 0, "mb", 0, "sbl" ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, "ga", "gb", "gc", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, "sct", 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, "ga", 0, 0 ],
+		  [ 0, 0, "sab-mb", 0, 0 ],
+		  [ 0, 0, "gb", 0, 0 ],
+		  [ 0, 0, 0, 0, "scl" ],
+		  [ 0, "gc", 0, 0, 0 ],
+		  [ 0, 0, 0, "sbt", 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "gd", "sab", "gb", 0 ],
+		  [ 0, "sbr", "gc", "sdl", 0 ],
+		  [ 0, 0, "sct", "ga", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab-mb", 0, 0, "ml" ],
+		  [ 0, "mr", "ga", 0, 0 ],
+		  [ 0, 0, "gb", "sbt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sar-mr", 0, "mb", 0 ],
+		  [ 0, "ga", 0, "sbl-ml", "gb" ],
+		  [ 0, 0, "mt", 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab-mb", 0, 0, "sbl-ml" ],
+		  [ 0, "scr-mr", "ga", "gc", "gb" ],
+		  [ 0, 0, 0, "mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab-mb", 0, 0, "sbl-ml" ],
+		  [ 0, "scr-mr", "gc", "ga", "gb" ],
+		  [ 0, 0, 0, "mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, 0, 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, "ga", 0 ],
+		  [ 0, 0, 0, "gb", 0 ],
+		  [ 0, "sab", 0, 0, 0 ],
+		  [ 0, 0, "sbb-mb", "gc", "ml" ],
+		  [ 0, 0, "mr", "sct-mt", 0 ],
+		  [ 0, "mr", 0, 0, "mt" ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab-mb", "gb", "scl-ml", 0 ],
+		  [ 0, "ga", 0, "gd", 0 ],
+		  [ 0, "sbr-mr", "gc", "sdt-mt", 0 ],
+		  [ 0, 0, 0, 0, 0 ],
+		  [ 0, "mt", 0, 0, 0 ]
+		],
+		[ [ 0, 0, 0, 0, 0 ],
+		  [ 0, "sab-mb", 0, "sdl-ml", 0 ],
+		  [ 0, "ga", 0, "gb", 0 ],
+		  [ 0, "mt", 0, "gc", 0 ],
+		  [ 0, "mb", 0, "gd", 0 ],
+		  [ 0, "sbr-mr", 0, "sct-mt", 0 ]
+		],
+		[ [ 0, "sab", "mb", 0, 0 ],
+		  [ 0, 0, 0, 0, "sbl-ml" ],
+		  [ "scr-mr", 0, 0, 0, 0 ],
+		  [ 0, "gb", "ga", "gc", 0 ],
+		  [ 0, 0, "mt", 0, 0 ],
 		  [ 0, 0, 0, 0, 0 ]
 		]
 	],
@@ -1144,18 +1273,21 @@ module.exports = "<div class=\"elt goal goal--{{type}}\"><div class=\"elt-desc e
 module.exports = "<div class=\"level\"></div>" ;
 
 },{}],18:[function(require,module,exports){
-module.exports = "<div id=\"levels\"><div class=\"bt-back\"></div><ul class=\"levels-entries\"><div class=\"levels-entry\"><span>0</span></div><div class=\"levels-entry\"><span>1</span></div><div class=\"levels-entry\"><span>2</span></div><div class=\"levels-entry\"><span>3</span></div><div class=\"levels-entry\"><span>4</span></div><div class=\"levels-entry\"><span>5</span></div><div class=\"levels-entry\"><span>6</span></div></ul></div>" ;
+module.exports = "<div class=\"levels-entry\"><span>{{idx}}</span></div>" ;
 
 },{}],19:[function(require,module,exports){
-module.exports = "<div id=\"menu\"><div class=\"menu-logo\"><div class=\"menu-logo-img\"></div></div><ul class=\"menu-actions\"><li class=\"menu-action menu-action--play\"></li><li class=\"menu-action menu-action--challenge\"></li></ul></div>" ;
+module.exports = "<div id=\"levels\"><div class=\"bt-back\"></div><ul class=\"levels-entries\"></ul></div>" ;
 
 },{}],20:[function(require,module,exports){
-module.exports = "<div class=\"elt modifier\"><div class=\"elt-desc elt-desc--arrow\"></div></div>" ;
+module.exports = "<div id=\"menu\"><div class=\"menu-logo\"><div class=\"menu-logo-img\"></div></div><ul class=\"menu-actions\"><li class=\"menu-action menu-action--play\"></li><li class=\"menu-action menu-action--challenge\"></li></ul></div>" ;
 
 },{}],21:[function(require,module,exports){
-module.exports = "<div class=\"screen\">{{ text }}</div>" ;
+module.exports = "<div class=\"elt modifier\"><div class=\"elt-desc elt-desc--arrow\"></div></div>" ;
 
 },{}],22:[function(require,module,exports){
+module.exports = "<div class=\"screen\">{{ text }}</div>" ;
+
+},{}],23:[function(require,module,exports){
 module.exports = "<div class=\"elt square square--{{type}}\"></div>" ;
 
 },{}]},{},[1])

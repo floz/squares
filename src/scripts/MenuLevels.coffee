@@ -1,18 +1,33 @@
 tpl = require "templates/menu-levels.jade"
+tplEntry = require "templates/menu-levels-entry.jade"
 save = require "save"
+data = require "data.json"
 
 class MenuLevels extends Emitter
 
 	constructor: ->
 		@dom = domify tpl
 
+		@_domLevelsCnt = @dom.querySelector ".levels-entries"
+
+		@_tplEntryCompiled = _.template tplEntry
+		@_createList()
+
 		@_domLevels = @dom.querySelectorAll ".levels-entry"
 		@_domBtBack = @dom.querySelector ".bt-back"
+
+	_createList: ->
+		fragment = document.createDocumentFragment()
+		for level, i in data.levels
+			dom = domify @_tplEntryCompiled { idx: i }
+			fragment.appendChild dom
+		@_domLevelsCnt.appendChild fragment
 
 	activate: ->
 		@_domBtBack.addEventListener "touchend", @_onBtBack, false
 		for domLevel in @_domLevels
 			domLevel.addEventListener "touchend", @_onBtLevel, false
+		return
 
 	_onBtBack: =>
 		@emit "back"
@@ -56,5 +71,6 @@ class MenuLevels extends Emitter
 		@_domBtBack.removeEventListener "touchend", @_onBtBack, false
 		for domLevel in @_domLevels
 			domLevel.removeEventListener "touchend", @_onBtLevel, false
+		return
 
 module.exports = MenuLevels
