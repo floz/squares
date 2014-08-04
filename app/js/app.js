@@ -95,12 +95,12 @@ Elt = (function() {
     }
     data = {
       css: {
-        rotation: r + 180
+        shortRotation: r + 180
       },
       ease: Back.easeOut
     };
     if (animate) {
-      return TweenLite.to(this.dom, .25, data);
+      return TweenLite.to(this.dom, .3, data);
     } else {
       return TweenLite.set(this.dom, data);
     }

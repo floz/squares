@@ -30,11 +30,11 @@ class Elt
 
 		data =
 			css:
-				rotation: r + 180
+				shortRotation: r + 180
 			ease: Back.easeOut
 
 		if animate
-			TweenLite.to @dom, .25, data
+			TweenLite.to @dom, .3, data
 		else
 			TweenLite.set @dom, data
 
